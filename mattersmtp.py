@@ -19,14 +19,18 @@ class MatterSmtp(smtpd.SMTPServer):
 
     def process_message(self, peer, mailfrom, rcpttos, data):
         logging.info("Receiving message from {} to {}".format(mailfrom, rcpttos))
-        subject = Parser().parsestr(data)['subject']
+        email = Parser().parsestr(data)
 
         for name, cfg in self.inboxes.items():
             address = cfg['address']
             if not address in rcpttos: continue
 
-            message = '**From:** {}\n**To:** {}\n{}'.format(
-                    mailfrom, ', '.join(rcpttos), data)
+            message = '**From:** {frm}\n**To:** {to}\n**Subject:** {subject}\n{body}'.format(
+                    frm = email['From'] or mailfrom,
+                    to = email['To'] or ', '.join(rcpttos),
+                    subject = email['Subject'],
+                    body = data)
+
             url = cfg['url']
 
             logging.info("Matched address {}; Sending message to webhook {}".format(address, url))
