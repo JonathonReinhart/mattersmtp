@@ -1,0 +1,10 @@
+loglevel: WARNING
+
+bind:
+    addr: 0.0.0.0
+    port: 25
+
+inboxes:
+    example:
+        address: "someone@localhost"
+        url: 'http://mattermost.example.com/hooks/abcdefghijklmnopqrstuvwxyz'
