@@ -12,12 +12,30 @@ import yaml
 SMTP_PORT = 25
 
 class MatterSmtp(smtpd.SMTPServer):
-    def __init__(self, address):
+    def __init__(self, address, inboxes):
         logging.info("Binding to {}".format(address))
         super().__init__(address, None)
+        self.inboxes = inboxes
 
     def process_message(self, peer, mailfrom, rcpttos, data):
-        logging.info("Receiving message from {}".format(mailfrom))
+        logging.info("Receiving message from {} to {}".format(mailfrom, rcpttos))
+        subject = Parser().parsestr(data)['subject']
+
+        for name, cfg in self.inboxes.items():
+            address = cfg['address']
+            if not address in rcpttos: continue
+
+            message = '**From:** {}\n**To:** {}\n{}'.format(
+                    mailfrom, ', '.join(rcpttos), data)
+            url = cfg['url']
+
+            logging.info("Matched address {}; Sending message to webhook {}".format(address, url))
+            mattersend.send(
+                channel = None,
+                message = message,
+                url = url,
+                username = 'MatterSMTP',
+                )
 
 class Config:
     def __init__(self, **kwargs):
@@ -73,7 +91,7 @@ def main():
     logging.basicConfig(level=cfg.loglevel)
 
     address = (cfg.bind['addr'], cfg.bind['port'])
-    server = MatterSmtp(address)
+    server = MatterSmtp(address, cfg.inboxes)
 
     try:
         asyncore.loop()
