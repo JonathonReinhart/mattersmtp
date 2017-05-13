@@ -1,0 +1,3 @@
+mattersmtp
+==========
+SMTP - Mattermost Gateway
