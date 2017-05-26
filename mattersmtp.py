@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+from __future__ import print_function
 import mattersend
 import smtpd
 import asyncore
@@ -11,10 +12,10 @@ import yaml
 
 SMTP_PORT = 25
 
-class MatterSmtp(smtpd.SMTPServer):
+class MatterSmtp(smtpd.SMTPServer, object): # SMTPServer is old-style
     def __init__(self, address, inboxes):
         logging.info("Binding to {}".format(address))
-        super().__init__(address, None)
+        super(MatterSmtp, self).__init__(address, None)
         self.inboxes = inboxes
 
     def process_message(self, peer, mailfrom, rcpttos, data):
@@ -41,7 +42,7 @@ class MatterSmtp(smtpd.SMTPServer):
                 username = 'MatterSMTP',
                 )
 
-class Config:
+class Config(object):
     def __init__(self, **kwargs):
         self.set_defaults()
         self.__dict__.update(kwargs)
